@@ -8,7 +8,7 @@ def cur_time()
 end
 
 #This method is used to copy all files the folder /usr/bin to the /tmp dictionary
-#symbolic link will be omitted.
+#symbolic links and folders will be skipped.
 def copy_files2tmp()
   Dir.glob(['/var/log/*','/usr/bin/*']) do |filename|
     src_path_file = filename
@@ -18,13 +18,13 @@ def copy_files2tmp()
         begin
           FileUtils.cp(src_path_file, dest_path_file)
           msg = "[#{cur_time}] Completed copying  %-50s" % [filename]
-          puts msg
+          puts msg.strip
         rescue
           next
         end
       else
         msg = "[#{cur_time}] %-50s exists, skipped!" % [filename]
-        puts msg
+        puts msg.strip
       end
     end
   end
