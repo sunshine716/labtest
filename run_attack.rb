@@ -73,7 +73,7 @@ end
 
 # The first step is to copy files from /usr/bin and /var/log into 
 # /tmp/ folder
-#copy_files2tmp()
+copy_files2tmp()
 
 # then start to attack 
 start_attack()
