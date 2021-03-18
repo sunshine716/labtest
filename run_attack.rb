@@ -64,7 +64,7 @@ def start_attack()
 			sleep(rand(1..5))
 		}
 		
-		if threads.size > 0 then # 4 threads work simultaneously.
+		if threads.size >= 2 then # 2 threads work simultaneously.
 			threads.each(&:join) # wait all the thread to finish the tasks
 			threads.clear()
 		end
