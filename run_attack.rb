@@ -1,5 +1,11 @@
 #!/usr/bin/ruby
 
+"""
+# This ruby file was used to mimic ransomware attacks in windows and Linux environments.
+Author: Weiyang Zhang
+E-mail: sunnylocus@email.arizona.edu
+"""
+
 require "fileutils"
 require "thread"
 
