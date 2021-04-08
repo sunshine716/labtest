@@ -7,12 +7,29 @@ def cur_time()
   return Time.now.strftime("%d/%m/%Y %H:%M:%S")
 end
 
+def windows?
+    (/cygwin|mswin|mingw|bccwin|wince|emx/ =~ RUBY_PLATFORM) != nil
+end
+
 #This method is used to copy all files the folder /usr/bin to the /tmp dictionary
 #symbolic links and folders will be skipped.
 def copy_files2tmp()
-  Dir.glob(['/var/log/*','/usr/bin/*']) do |filename|
+  src_folders = ['/var/log/*','/usr/bin/*']
+  if windows?
+	# if the temporary folder does not exist, then create it
+	if !File.directory?("C:/tmp")
+		FileUtils.mkdir_p 'C:/tmp'
+	end
+	src_folders = ['C:/Windows/System32/*','C:/Windows/*']
+  end
+
+  Dir.glob(src_folders) do |filename|
     src_path_file = filename
-    dest_path_file = '/tmp/' + File.basename(src_path_file)
+	if windows?
+		dest_path_file = 'C:/tmp/' + File.basename(src_path_file)
+	else
+		dest_path_file = '/tmp/' + File.basename(src_path_file)
+	end
     if not ( File.symlink?(src_path_file) or  File.directory?(src_path_file))
       if not File.exist?(dest_path_file)
         begin
@@ -28,13 +45,18 @@ def copy_files2tmp()
       end
     end
   end
+  puts "\n\n!!Finished copying test files !!\n\n"
 end
 
 # This method is used to invoke ransomware_mac to encrypt file
 def start_attack()
-	puts "\n\n!!Finished copying files, the ransomware starts encrypting files by using multiple threads.!!\n\n"
 	threads = []
-	Dir.glob('/tmp/*') do |full_file_path|
+	dest_folders = ['/tmp/*']
+	if windows?
+		# if the temporary folder does not exist, then create it
+		dest_folders = ['C:/tmp/*']
+	end
+	Dir.glob(dest_folders) do |full_file_path|
 		# build thread to run the encryption program
 		threads << Thread.new { 
 			# `./ransomware_mac #{full_file_path}`
@@ -60,21 +82,26 @@ def start_attack()
 	 		rescue Exception => e
 	 			nil
 	 		end
-	 		# sleep the random second between 1 and 5, the purpose is to make the script run slowly 
-			sleep(rand(1..5))
+	 		# we make it do math calculation in order to simulate the real behavior of ransomware
+			# ransomware uses a lot of cpu resource
+			 Math.log(Math.gamma(50000000000000000000000).abs)
 		}
 		
-		if threads.size >= 2 then # 2 threads work simultaneously.
+		if threads.size >= 8 then # 8 threads work simultaneously.
 			threads.each(&:join) # wait all the thread to finish the tasks
 			threads.clear()
 		end
 	end
 end
-
+ 
+begin
 # The first step is to copy files from /usr/bin and /var/log into 
-# /tmp/ folder
+# /tmp/ folder and then invoke start_attack() to encrypt or decrypt the file
 copy_files2tmp()
+while true
+	start_attack()
+end
 
-# then start to attack 
-start_attack()
-
+rescue Interrupt => e
+	puts("\n Successfully terminated the ransomware!")
+end
